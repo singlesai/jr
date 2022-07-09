@@ -1,0 +1,13 @@
+{
+    "apps": [
+        {
+            "name": "sten2k3",
+            "cwd": "./",
+            "script": "./sten2kd/bin/www",
+            "log_date_format": "YYYY-MM-DD HH:mm z",
+            "error_file": "./log/err.log",
+            "out_file": "./log/log.log",
+            "pid_file": "./sten2kd.pid"
+        }
+    ]
+}

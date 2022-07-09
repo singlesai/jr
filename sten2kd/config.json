@@ -1,0 +1,20 @@
+{
+    "db": {
+        "server":"127.0.0.1",
+        "port": 1433,
+        "user": "sa",
+        "password_P": "kd&jr123456",
+        "password":"",
+        "database_P": "AIS20210126133607",
+        "database": "AIS20201101143959"
+    },
+    "stendb": {
+        "server":"127.0.0.1",
+        "port": 1433,
+        "user": "sa",
+        "password_P": "kd&jr123456",
+        "password":"",
+        "database_P": "AIS20210126133607",
+        "database": "AIS20201101143959"
+    }
+}
