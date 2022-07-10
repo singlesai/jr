@@ -41,4 +41,24 @@ router.post('/stenobj', async function(req, res){
   res.end(JSON.stringify(rst))
 })
 
+router.get('/purin', async function(req,res){
+  var rst = {success: false, info: ''}
+  try{
+    var r = await sten.getPurIn(req.query.begdate, req.query.enddate)
+    rst.success = true
+    rst.info = r
+  }catch(ex){
+    rst.success = false
+    rst.info = ex.message || ex
+  }
+  res.end(JSON.stringify(rst))
+})
+
+router.get('/purreturn', async function(req,res){
+
+})
+
+router.post('/stocktran', async function(req,res){
+})
+
 module.exports = router;

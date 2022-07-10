@@ -2,25 +2,31 @@
   <div class="hello">
       <el-divider>定时同步</el-divider>
     <h3>每30分钟下载一次当天数据；每2小时下载一次最近一周数据；每天下载当月数据</h3>
-    <div>
-      <button @click="work">工单</button>
-      <button @click="salePost">发料</button>
-      <button @click="saleIssue">销售出库</button>
-      <button @click="saleIssueEntry">销售出库明细</button>
-      <button @click="feeInvoice">费用记录</button>
-      <button @click="purIn">采购入库</button>
-      <button @click="purInEntry">采购入库明细</button>
-      <button @click="purReturn">采购退货</button>
-      <button @click="purReturnEntry">采购退货明细</button>
-      <button @click="stockTaking">盘点</button>
-      <button @click="stockTakingEntry">盘点明细</button>
-      <button @click="otherIn">其他入库</button>
-      <button @click="otherInEntry">其他入库明细</button>
-      <button @click="otherIssue">其他出库</button>
-      <button @click="otherIssueEntry">其他出库明细</button>
-      <button @click="materialReturn">退料</button>
-      <button @click="materialReturnEntry">退料明细</button>
-      <button @click="achievement">施工业绩</button>
+    <div v-loading="loading">
+      <el-divider>立即同步</el-divider>
+      <el-form :inline="true">
+        <el-form-item>
+          <el-date-picker v-model="filter.date" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
+        </el-form-item>
+      </el-form>
+      <button @click="syncObj('Work')">工单</button>
+      <button @click="syncObj('SalePost')">发料</button>
+      <button @click="syncObj('SaleIssue')">销售出库</button>
+      <button @click="syncObj('SaleIssueEntry')">销售出库明细</button>
+      <button @click="syncObj('FeeInvoice')">费用记录</button>
+      <button @click="syncObj('PurIn')">采购入库</button>
+      <button @click="syncObj('PurInEntry')">采购入库明细</button>
+      <button @click="syncObj('PurReturn')">采购退货</button>
+      <button @click="syncObj('PurReturnEntry')">采购退货明细</button>
+      <button @click="syncObj('StockTaking')">盘点</button>
+      <button @click="syncObj('StockTakingEntry')">盘点明细</button>
+      <button @click="syncObj('OtherIn')">其他入库</button>
+      <button @click="syncObj('OtherInEntry')">其他入库明细</button>
+      <button @click="syncObj('OtherIssue')">其他出库</button>
+      <button @click="syncObj('OtherIssueEntry')">其他出库明细</button>
+      <button @click="syncObj('MaterialReturn')">退料</button>
+      <button @click="syncObj('MaterialReturnEntry')">退料明细</button>
+      <button @click="syncObj('Achievement')">施工业绩</button>
     </div>
     <div v-for="log in logs" :key="log">{{log}}</div>
   </div>
@@ -37,7 +43,9 @@ export default {
       sh: undefined,
       sten: undefined,
       k3: undefined,
-      logs: []
+      logs: [],
+      filter: {},
+      loading: false
     }
   },
   mounted () {
@@ -119,77 +127,21 @@ export default {
       console.log(obj, rst)
       return rst
     },
-    async work () {
-      var rst = await this.sten.Work()
-      console.log('work', rst)
-    },
-    async salePost () {
-      var rst = await this.sten.SalePost()
-      console.log('salepost', rst)
-    },
-    async saleIssue () {
-      var rst = await this.sten.SaleIssue()
-      console.log('saleissue', rst)
-    },
-    async saleIssueEntry () {
-      var rst = await this.sten.SaleIssueEntry()
-      console.log('saleissueentry', rst)
-    },
-    async feeInvoice () {
-      var rst = await this.sten.FeeInvoice()
-      console.log('feeinvoice', rst)
-    },
-    async purIn () {
-      var rst = await this.sten.PurIn()
-      console.log('purin', rst)
-    },
-    async purInEntry () {
-      var rst = await this.sten.PurInEntry()
-      console.log('purinentry', rst)
-    },
-    async purReturn () {
-      var rst = await this.sten.PurReturn()
-      console.log('PurReturn', rst)
-    },
-    async purReturnEntry () {
-      var rst = await this.sten.PurReturnEntry()
-      console.log('PurReturnEntry', rst)
-    },
-    async stockTaking () {
-      var rst = await this.sten.StockTaking()
-      console.log('StockTaking', rst)
-    },
-    async stockTakingEntry () {
-      var rst = await this.sten.StockTakingEntry()
-      console.log('StockTakingEntry', rst)
-    },
-    async otherIn () {
-      var rst = await this.sten.OtherIn()
-      console.log('OtherIn', rst)
-    },
-    async otherInEntry () {
-      var rst = await this.sten.OtherInEntry()
-      console.log('OtherInEntry', rst)
-    },
-    async otherIssue () {
-      var rst = await this.sten.OtherIssue()
-      console.log('OtherIn', rst)
-    },
-    async otherIssueEntry () {
-      var rst = await this.sten.OtherInEntry()
-      console.log('OtherInEntry', rst)
-    },
-    async materialReturn () {
-      var rst = await this.sten.MaterialReturn()
-      console.log('MaterialReturn', rst)
-    },
-    async materialReturnEntry () {
-      var rst = await this.sten.MaterialReturnEntry()
-      console.log('MaterialReturnEntry', rst)
-    },
-    async achievement () {
-      var rst = await this.sten.Achievement()
-      console.log('Achievement', rst)
+    async syncObj (objName) {
+      // var rst = await this.sten.PurIn()
+      try {
+        if (!('date' in this.filter)) throw new Error('请输入日期')
+        this.loading = true
+        var begDate = moment(this.filter.date[0])
+        var endDate = moment(this.filter.date[1])
+        await this.syncData(objName, begDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'))
+        this.loading = false
+        this.$message('同步完毕')
+      } catch (ex) {
+        this.loading = false
+        this.$message.error(ex.message)
+      }
+      console.log('purin', this.filter)
     }
   }
 }

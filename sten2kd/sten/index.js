@@ -137,6 +137,31 @@ class Sten {
         }
         return rst
     }
+
+    async getPurIn(begDate, endDate) {
+        this._db.init()
+        var strSql = `select * from purin where inputtime>='`+begDate+`' and inputtime<='`+endDate+`'`
+        var rst = await this._db.excSql(strSql)
+        var dic = {}
+        for(var idx in rst.recordset){
+            dic[rst.recordset[idx].inputNo] = rst.recordset[idx]
+        }
+        strSql = `select j.* from purin i join purinentry j on j.inputNo=i.inputNo where i.inputtime>='`+begDate+`' and i.inputtime<='`+endDate+`'`
+        var rste = await this._db.excSql(strSql)
+        for(var idx in rste.recordset){
+            if(rste.recordset[idx].inputNo in dic){
+                if(!dic[rste.recordset[idx].inputNo]['entry']){
+                    dic[rste.recordset[idx].inputNo]['entry'] = []
+                }
+                dic[rste.recordset[idx].inputNo]['entry'].push(rste.recordset[idx])
+            }
+        }
+        var rl = []
+        for(var key in dic){
+            rl.push(dic[key])
+        }
+        return rl
+    }
 }
 
 module.exports = Sten

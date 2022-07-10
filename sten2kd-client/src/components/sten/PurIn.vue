@@ -6,11 +6,6 @@
                 <el-date-picker v-model="filter.date" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
             </el-form-item>
             <el-form-item>
-                <el-select v-model="filter.store" placeholder="请选择">
-                    <el-option v-for="item in filter.storeList" :key="item.deptId" :label="item.deptName" :value="item.deptId"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item>
                 <el-button-group>
                     <el-button type="primary" @click="query()">查询</el-button>
                     <el-button type="primary" v-loading="loading.sync" :disabled="loading.work || loading.fee || loading.post || loading.issue || loading.issueEntry" @click="sync()">同步选中记录</el-button>
@@ -37,7 +32,8 @@
 </template>
 
 <script>
-import Sten from '@/sten'
+import moment from 'moment'
+import Mid from '@/mid'
 import K3 from '@/k3'
 
 export default {
@@ -130,47 +126,26 @@ export default {
   },
   methods: {
     async init () {
-      this.sten = new Sten()
+      this.sten = new Mid()
       this.k3 = new K3()
-      await this.sten.init()
-      this.filter.storeList = await this.sten.deptList()
-      // console.log(this.filter.storeList)
     },
     async query () {
       // console.log(this.filter.date)
       var begDate
       var endDate
       if (this.filter.date) {
-        begDate = this.filter.date[0].toLocaleDateString()
-        endDate = this.filter.date[1].toLocaleDateString()
+        begDate = moment(this.filter.date[0]).format('YYYY-MM-DD')
+        endDate = moment(this.filter.date[1]).format('YYYY-MM-DD')
       }
       this.loading.head = true
       this.loading.entry = true
       try {
-        var rst = await this.sten.PurIn(begDate, endDate, this.filter.store, this.filter.cust)
+        var rst = await this.sten.PurIn(begDate, endDate)
         this.data = rst
-        this.$message('单头数据加载完毕')
       } catch (ex) {
         this.$message.error(ex.message)
       }
-      // 明细
-      try {
-        var entry = await this.sten.PurInEntry()
-        for (var jdx in entry) {
-          var rec = entry[jdx]
-          for (var idx in this.data) {
-            if (this.data[idx].inputNo === rec.inputNo) {
-              if (!this.data[idx].entry) {
-                this.data[idx].entry = []
-              }
-              this.data[idx].entry.push(rec)
-            }
-          }
-        }
-        this.$message('明细数据加载完毕')
-      } catch (ex) {
-        this.$message.error(ex.message)
-      }
+      this.loading.head = false
       this.loading.entry = false
     },
     async sync () {
