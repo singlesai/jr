@@ -498,103 +498,14 @@ const Mid = class {
     if (!rst.data.success) throw new Error(rst.data.info)
     return rst.data.info
   }
-  // 采购入库明细
-  async PurInEntry (params) {
-    params = this.initParams(params)
-    var filter = {_csrf: this.csrf}
-    filter['interest'] = '0'
-    filter['purchaseNo'] = ''
-    filter['storeId'] = ''
-    filter['positionId'] = ''
-    filter['viewInStartDate'] = params.begDate + ' 至 ' + params.endDate
-    filter['plateNo'] = ''
-    filter['receiverId'] = ''
-    filter['viewPurStartDate'] = ''
-    filter['selectDeptId'] = ''
-    filter['inStartDate'] = params.begDate
-    filter['inEndDate'] = params.endDate + ' 23:59:59'
-    var rst = await axios({
-      url: '/partInfo/getPurchasePartByPage',
-      method: 'POST',
-      headers: {'content-type': 'application/x-www-form-urlencoded'},
-      data: qs.stringify({
-        page: params.page,
-        limit: params.pageSize,
-        param: JSON.stringify(filter),
-        _csrf: this.csrf,
-        index: 1,
-        size: params.pageSize
-      })
-    })
-    // console.log('fee', rst.data)
-    return rst.data.rows
-  }
   // 采购退货
-  async PurReturn (params) {
-    params = this.initParams(params)
-    var filter = {_csrf: this.csrf}
-    filter['outputNo'] = ''
-    filter['firmNo'] = ''
-    filter['partNo'] = ''
-    filter['tdstartDate'] = params.begDate + ' 至 ' + params.endDate
-    filter['partName'] = ''
-    filter['supplierName'] = ''
-    filter['barCode'] = ''
-    filter['remark'] = ''
-    filter['selectDeptId'] = ''
-    filter['startDate'] = params.begDate
-    filter['endDate'] = params.endDate + ' 23:59:59'
+  async PurReturn (begDate, endDate) {
     var rst = await axios({
-      url: '/outputsheet/findPurchaseOutputsheet',
-      method: 'POST',
-      headers: {'content-type': 'application/x-www-form-urlencoded'},
-      data: qs.stringify({
-        page: params.page,
-        limit: params.pageSize,
-        param: JSON.stringify(filter),
-        _csrf: this.csrf,
-        index: 1,
-        size: params.pageSize
-      })
+      method: 'GET',
+      url: this._domain + '/purreturn?begdate=' + begDate + '&enddate=' + endDate
     })
-    // console.log('fee', rst.data)
-    return rst.data.rows
-  }
-  // 采购退货明细
-  async PurReturnEntry (params) {
-    params = this.initParams(params)
-    var filter = {_csrf: this.csrf}
-    filter['interest'] = 0
-    filter['outputNo'] = ''
-    filter['storeId'] = ''
-    filter['positionId'] = ''
-    filter['firmNo'] = ''
-    filter['partNo'] = ''
-    filter['outputTime'] = params.begDate + ' 至 ' + params.endDate
-    filter['taker'] = ''
-    filter['handler'] = ''
-    filter['partName'] = ''
-    filter['supplierName'] = ''
-    filter['barCode'] = ''
-    filter['remark'] = ''
-    filter['selectDeptId'] = ''
-    filter['startDate'] = params.begDate
-    filter['endDate'] = params.endDate + ' 23:59:59'
-    var rst = await axios({
-      url: '/outputsheet/selectPurOutDetailByPage',
-      method: 'POST',
-      headers: {'content-type': 'application/x-www-form-urlencoded'},
-      data: qs.stringify({
-        page: params.page,
-        limit: params.pageSize,
-        param: JSON.stringify(filter),
-        _csrf: this.csrf,
-        index: 1,
-        size: params.pageSize
-      })
-    })
-    // console.log('fee', rst.data)
-    return rst.data.rows
+    if (!rst.data.success) throw new Error(rst.data.info)
+    return rst.data.info
   }
   // 盘点
   async StockTaking (params) {

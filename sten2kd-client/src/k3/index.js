@@ -163,6 +163,20 @@ const K3 = class {
       return rst.data
     }
   }
+
+  async syncStockTran (srcObjName, bill) {
+    var data = {
+      srcObjName,
+      bill
+    }
+    var rst = await axios({
+      method: 'POST',
+      url: this._domain + '/stocktran',
+      data,
+      header: {'Content-Type': 'application/joon'}
+    })
+    return rst.data
+  }
 }
 
 export default K3

@@ -23,7 +23,7 @@
         <el-menu-item-group>
           <el-menu-item index="2-1"><router-link :to="{name:'PurIn'}">采购入库</router-link></el-menu-item>
           <el-menu-item index="2-2"><router-link :to="{name:'PurReturn'}">采购退货</router-link></el-menu-item>
-          <el-menu-item index="2-3"><router-link :to="{name:'Stocktaking'}">盘点</router-link></el-menu-item>
+          <!--el-menu-item index="2-3"><router-link :to="{name:'Stocktaking'}">盘点</router-link></el-menu-item>
           <el-menu-item index="2-4"><router-link :to="{name:'OtherIn'}">其他入库</router-link></el-menu-item>
           <el-submenu index="2-5">
             <template slot="title">其他出库</template>
@@ -31,10 +31,10 @@
             <el-menu-item index="2-5-2"><router-link :to="{name:'OtherIssue_Loss'}">损耗</router-link></el-menu-item>
             <el-menu-item index="2-5-3"><router-link :to="{name:'OtherIssue_Tailings'}">尾料出库</router-link></el-menu-item>
           </el-submenu>
-          <el-menu-item index="2-6"><router-link :to="{name:'MatRet'}">退料</router-link></el-menu-item>
+          <el-menu-item index="2-6"><router-link :to="{name:'MatRet'}">退料</router-link></el-menu-item-->
         </el-menu-item-group>
       </el-submenu>
-      <el-submenu index="3">
+      <!--el-submenu index="3">
         <template slot="title">
           <i class="el-icon-location"></i>
           <span>财务</span>
@@ -42,7 +42,7 @@
         <el-menu-item-group>
           <el-menu-item index="3-1"><router-link :to="{name:'Achievement'}">施工业绩</router-link></el-menu-item>
         </el-menu-item-group>
-      </el-submenu>
+      </el-submenu-->
     </el-menu>
     </el-col>
     <el-col :span="20">

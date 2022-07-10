@@ -58,6 +58,8 @@ export default {
         syncPercent: 0
       },
       fieldDic: {
+        syncSuccess: '已同步',
+        syncInfo: '同步信息',
         inputNo: '入库单号',
         inputTime: '入库日期',
         relateNo: '采购单号',
@@ -151,19 +153,24 @@ export default {
     async sync () {
       this.loading.syncPercent = 0
       this.loading.sync = true
-      var recs = this.multipleSelection
-      for (var idx in recs) {
-        var rec = recs[idx]
-        var rst = await this.k3.Sync(rec)
-        if (!rst.success) {
-          this.$message.error(rst.info)
+      try {
+        var recs = this.multipleSelection
+        for (var idx in recs) {
+          var rec = recs[idx]
+          var rst = await this.k3.syncStockTran('PurIn', rec)
+          if (!rst.success) {
+            this.$message.error(rst.info)
+          }
+          console.log(idx, this.multipleSelection.length)
+          this.loading.syncPercent = parseInt((idx + 1) * 100 / recs.length)
+          // console.log('rst', rst)
         }
-        console.log(idx, this.multipleSelection.length)
-        this.loading.syncPercent = parseInt((idx + 1) * 100 / recs.length)
-        // console.log('rst', rst)
+        this.loading.sync = false
+        this.query()
+      } catch (ex) {
+        this.loading.sync = false
+        this.$message.error(ex.message)
       }
-      this.loading.sync = false
-      this.query()
     },
     handleSelectionChange (val) {
       this.multipleSelection = val

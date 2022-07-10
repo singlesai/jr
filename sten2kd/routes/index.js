@@ -44,7 +44,17 @@ router.post('/stenobj', async function(req, res){
 router.get('/purin', async function(req,res){
   var rst = {success: false, info: ''}
   try{
+    var synced = await k3.getSyncStatus('PurIn', req.query.begdate)
     var r = await sten.getPurIn(req.query.begdate, req.query.enddate)
+    for(var idx in r){
+      if(r[idx].inputNo in synced) {
+        r[idx].syncSuccess = synced[r[idx].inputNo].FSuccessed
+        r[idx].syncInfo = synced[r[idx].inputNo].FInfo
+      }else{
+        r[idx].syncSuccess = 0
+        r[idx].syncInfo = ''
+      }
+    }
     rst.success = true
     rst.info = r
   }catch(ex){
@@ -55,10 +65,45 @@ router.get('/purin', async function(req,res){
 })
 
 router.get('/purreturn', async function(req,res){
-
+  var rst = {success: false, info: ''}
+  try{
+    var synced = await k3.getSyncStatus('PurReturn', req.query.begdate)
+    var r = await sten.getPurReturn(req.query.begdate, req.query.enddate)
+    for(var idx in r){
+      if(r[idx].inputNo in synced) {
+        r[idx].syncSuccess = synced[r[idx].inputNo].FSuccessed
+        r[idx].syncInfo = synced[r[idx].inputNo].FInfo
+      }else{
+        r[idx].syncSuccess = 0
+        r[idx].syncInfo = ''
+      }
+    }
+    rst.success = true
+    rst.info = r
+  }catch(ex){
+    rst.success = false
+    rst.info = ex.message || ex
+  }
+  res.end(JSON.stringify(rst))
 })
 
 router.post('/stocktran', async function(req,res){
+  var rst = {success: false, info: ''}
+  try {
+    var bill = req.body.bill
+    bill.billNo=bill.inputNo
+    bill.date = bill.inputTime
+    for(var idx in bill.entry){
+      bill.entry[idx].itemName = bill.entry[idx].partName
+    }
+    var r = await k3.saveStockTran(req.body.srcObjName, bill)
+    rst.success = true
+    rst.info = JSON.stringify(r)
+  }catch(ex){
+    rst.success = false
+    rst.info = ex.message || ex
+  }
+  res.end(JSON.stringify(rst))
 })
 
 module.exports = router;

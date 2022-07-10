@@ -162,6 +162,31 @@ class Sten {
         }
         return rl
     }
+    
+    async getPurReturn(begDate, endDate) {
+        this._db.init()
+        var strSql = `select * from purreturn where outputtime1>='`+begDate+`' and outputtime1<='`+endDate+`'`
+        var rst = await this._db.excSql(strSql)
+        var dic = {}
+        for(var idx in rst.recordset){
+            dic[rst.recordset[idx].outputNo] = rst.recordset[idx]
+        }
+        strSql = `select j.* from purreturn i join purreturnentry j on j.outputNo=i.outputNo where i.outputtime1>='`+begDate+`' and i.outputtime1<='`+endDate+`'`
+        var rste = await this._db.excSql(strSql)
+        for(var idx in rste.recordset){
+            if(rste.recordset[idx].outputNo in dic){
+                if(!dic[rste.recordset[idx].outputNo]['entry']){
+                    dic[rste.recordset[idx].outputNo]['entry'] = []
+                }
+                dic[rste.recordset[idx].outputNo]['entry'].push(rste.recordset[idx])
+            }
+        }
+        var rl = []
+        for(var key in dic){
+            rl.push(dic[key])
+        }
+        return rl
+    }
 }
 
 module.exports = Sten
