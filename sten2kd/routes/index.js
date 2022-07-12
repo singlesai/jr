@@ -106,4 +106,18 @@ router.post('/stocktran', async function(req,res){
   res.end(JSON.stringify(rst))
 })
 
+router.post('/manuissue', async function(req, res){
+  var rst = {success: false, info: ''}
+  try{
+    var bill = req.body.bill
+    var r = await k3.saveManuIssue(bill)
+    rst.success = true
+    rst.info = JSON.stringify(r)
+  }catch(ex){
+    rst.success = false
+    rst.info = ex.message || ex
+  }
+  rst.end(JSON.stringify(rst))
+})
+
 module.exports = router;

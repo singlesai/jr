@@ -278,7 +278,7 @@ class K3 {
             bill.deptId = rs.recordset[0]['FItemID']
             */
 
-            for(idx in bill.entry){
+            for(var idx in bill.entry){
                 var entry = bill.entry[idx]
                 strSql = `select FItemID from t_icitemcore where FDeleted=0 and FName='`+entry.itemName+`' and FModel='`+entry.itemModel+`'`
                 rs = await this._db.excSql(strSql)
@@ -355,6 +355,132 @@ class K3 {
                         await this._db.excSql(strSql)
                         strSql = `INSERT INTO ICStockBill(FInterID,FBillNo,FBrNo,FTranType,FCancellation,FStatus,FUpStockWhenSave,FROB,FHookStatus,Fdate,FSupplyID,FSaleStyle,FCheckDate,FConfirmDate,FFManagerID,FSManagerID,FBillerID,FConfirmer,FMultiCheckDate1,FMultiCheckDate2,FMultiCheckDate3,FMultiCheckDate4,FMultiCheckDate5,FPOOrdBillNo,FMultiCheckDate6,FRelateBrID,FOrgBillInterID,FMarketingStyle,FSelTranType,FPrintCount,FBrID,FFetchAdd,FConfirmMem,FExplanation,FDeptID,FEmpID,FManagerID,FVIPCardID,FReceiver,FVIPScore,FHolisticDiscountRate,FPOSName,FWorkShiftId,FLSSrcInterID,FPayCondition,FManageType,FSettleDate,FInvoiceStatus,FConsignee,FEnterpriseID,FSendStatus,FReceiveMan,FConsigneeAdd,FCod,FReceiverMobile,FHeadSelfB0163,FUUID) 
             SELECT `+id+`,'`+bill.billNo+`','0',41,0,0,0,1,0,'`+bill.date+`',`+bill.custId+`,101,Null,Null,`+bill.empId+`,`+bill.empId+`,16394,0,Null,Null,Null,Null,Null,'',Null,0,0,12530,0,0,0,'','','`+bill.note+`',`+bill.deptId+`,`+bill.empId+`,`+bill.empId+`,0,'',0,0,'',0,0,0,0,'`+bill.date+`','',0,0,0,'','','','',`+bill.hxId+`,newid()`
+                        await this._db.excSql(strSql)
+                    }
+                    // strSql = `delete SL_StenSyncStatus where FCareNo='`+bill.billNo+`'`
+                    // await this._db.excSql(strSql)
+                    strSql = `insert into SL_StenSyncStatus(FCareNo,FPlateNo,FSuccessed,FTime,FInfo)
+                    select '`+bill.billNo+`','`+objectName+`',1,getdate(),''`
+                    await this._db.excSql(strSql)
+                }
+                await this._db.endTran()
+            }catch(ex){
+                await this._db.exitTran()
+                throw(ex)
+            }
+        }catch(ex){
+            console.log('err', ex)
+            var info = ex.message || ex
+            info = info.replace(/'/g, `''`)
+            strSql = `insert into SL_StenSyncStatus(FCareNo,FPlateNo,FSuccessed,FTime,FInfo)
+            select '`+bill.billNo+`','`+objectName+`',0,getdate(),'`+info+`'`
+            await this._db.excSql(strSql)
+        }
+        return bill
+    }
+
+    async saveManuIssue(bill){
+        var strSql = `select top 1 FSuccessed from SL_StenSyncStatus i 
+        left join icstockbill si on si.FTranType=24 and si.FBillNo=i.FCareNo 
+    where isnull(si.FInterID,0)<>0 and (FPlateNo='PurIn' or FPlateNo='PurReturn') and FCareNo='`+bill.billNo+`' order by FTime desc`
+        var rs = await this._db.excSql(strSql)
+        if (rs.recordset.length>0) {
+            if (rs.recordset[0]['FSuccessed'] === 1) {
+                throw(`单据'`+bill.billNo+`'已同步`)
+            }
+        }
+        try{
+            /*
+            strSql = `select FItemID,F_103 from t_organization where FName = '`+bill.cust+`'`
+            rs = await this._db.excSql(strSql)
+            if (rs.recordset.length<=0) throw(`客户'`+bill.cust+`'在金蝶中不存在`)
+            bill.custId = rs.recordset[0]['FItemID']
+            bill.hxId = rs.recordset[0]['F_103']
+            
+            strSql = `select FItemID,FDepartmentID from t_emp where FName='`+bill.emp+`'`
+            rs = await this._db.excSql(strSql)
+            if (rs.recordset.length<=0) throw(`职员'`+bill.emp+`'在金蝶中不存在`)
+            bill.empId = rs.recordset[0]['FItemID']
+            bill.deptId = rs.recordset[0]['FDepartmentID']
+
+            var strSql = `select FItemID from t_department where FNumber='017.001'`// FName='`+bill.dept+`'`
+            rs = await this._db.excSql(strSql)
+            if (rs.recordset.length<=0) throw(`部门'`+bill.dept+`'在金蝶中不存在`)
+            bill.deptId = rs.recordset[0]['FItemID']
+            */
+
+            for(idx in bill.entry){
+                var entry = bill.entry[idx]
+                strSql = `select FItemID from t_icitemcore where FDeleted=0 and FName='`+entry.itemName+`' and FModel='`+entry.itemModel+`'`
+                rs = await this._db.excSql(strSql)
+                if (rs.recordset.length<=0) throw(`物料'`+entry.itemName+`[`+entry.itemModel+`]'在金蝶中不存在`)
+                bill.entry[idx].itemId = rs.recordset[0]['FItemID']
+                
+                strSql = `select FItemID from t_stock where FName='`+entry.stock+`'`
+                rs = await this._db.excSql(strSql)
+                if (rs.recordset.length<=0) throw(`仓库'`+entry.stock+`'在金蝶中不存在`)
+                bill.entry[idx].stockId = rs.recordset[0]['FItemID']
+            }
+
+            await this._db.begTran()
+            try{
+                // 保存调拨
+                if(bill.entry){
+                    cnt = 0
+                    for(idx in bill.entry) {
+                        if (bill.entry[idx].qty != 0) {
+                            cnt += 1
+                        }
+                    }
+                    if (cnt > 0) {
+                        strSql = `update ICMaxNum set FMaxNum=FMaxNum+1 where FTableName='ICStockBill'
+                        select FMaxNum id from ICMaxNum where FTableName='ICStockBill'`
+                        rs = await this._db.excSql(strSql)
+                        id = rs.recordset[0]['id']
+                        var eid = 0
+                        for(idx in bill.entry){
+                            var entry = bill.entry[idx]
+                            entry.syncedQty = 0
+                            strSql = `
+        select FKFDate,FKFPeriod,dateadd(day,FKFPeriod,FKFDate) FKF,sum(FQty) FQty from
+        (select FKFDate,FKFPeriod,FQty from ICInventory where FItemID=`+entry.itemId+` and FStockID=`+entry.issueStockId+` and FStockPlaceID=0
+        /*union all
+        select j.FKFDate,j.FKFPeriod,j.fqty
+        from ICStockBill i join ICStockBillEntry j on j.FInterID=i.FInterID
+        where isnull(i.FCheckerID,0)=0 and i.FTranType in (1,2,3,5,10,40) and j.fqty>0 and FItemID=`+entry.itemId+` and isnull(j.FDCStockID,j.FSCStockID)=`+entry.issueStockId+` and isnull(j.FDCSPID,j.FSCSPID)=0
+        union all
+        select j.FKFDate,j.FKFPeriod,0-j.fqty
+        from ICStockBill i join ICStockBillEntry j on j.FInterID=i.FInterID
+        where isnull(i.FCheckerID,0)=0 and i.FTranType in (21,24,28,29,43) and j.fqty>0 and FItemID=`+entry.itemId+` and isnull(j.FDCStockID,j.FSCStockID)=`+entry.issueStockId+` and isnull(j.FDCSPID,j.FSCSPID)=0
+        */) i 
+        group by FKFDate,FKFPeriod
+        having sum(FQty) > 0
+        order by dateadd(day,FKFPeriod,FKFDate)`
+                            rs = await this._db.excSql(strSql)
+                            rs = rs.recordset
+                            for(var jdx in rs){
+                                var inv = rs[jdx]
+                                inv['FKFDate'] = this.format(inv['FKFDate'], 'yyyy-MM-dd')
+                                inv['FKF'] = this.format(inv['FKF'], 'yyyy-MM-dd')
+                                if(entry.qty>entry.syncedQty){
+                                    var qty = (inv['FQty']>=(entry.qty-entry.syncedQty)?(entry.qty-entry.syncedQty):inv['FQty'])
+                                    if(qty>0.0001){
+                                        strSql = `INSERT INTO ICStockBillEntry (FInterID,FEntryID,FBrNo,FMapNumber,FMapName,FItemID,FOLOrderBillNo,FAuxPropID,FBatchNo,FEntrySelfB0182,FQty,FUnitID,FAuxQtyMust,Fauxqty,FSecCoefficient,FSecQty,FAuxPlanPrice,FPlanAmount,Fauxprice,Famount,Fnote,FKFDate,FKFPeriod,FPeriodDate,FIsVMI,FEntrySupply,FDCStockID,FDCSPID,FEntrySelfB0179,FEntrySelfB0180,FEntrySelfB0181,FConsignPrice,FDiscountRate,FDiscountAmount,FConsignAmount,FOrgBillEntryID,FSNListID,FSourceBillNo,FSourceTranType,FSourceInterId,FSourceEntryID,FContractBillNo,FContractInterID,FContractEntryID,FOrderBillNo,FOrderInterID,FOrderEntryID,FAllHookQTY,FCurrentHookQTY,FQtyMust,FSepcialSaleId,FClientEntryID,FPlanMode,FMTONo,FClientOrderNo,FConfirmMemEntry,FChkPassItem,FSEOutBillNo,FSEOutEntryID,FSEOutInterID,FReturnNoticeBillNo,FReturnNoticeEntryID,FReturnNoticeInterID,FProductFileQty,FOutSourceInterID,FOutSourceEntryID,FOutSourceTranType,FShopName,FPostFee,FEntrySelfB0183)  
+                        SELECT `+id+`,`+(eid+1)+`,'0','','',FItemID,'',0,'','',`+qty+`,FUnitID,0,`+qty+`,0,0,0,0,0,0,'`+entry.codeName+`','`+inv['FKFDate']+`',`+inv['FKFPeriod']+`,'`+inv['FKF']+`',0,0,`+entry.stockId+`,0,0,`+entry.settlePrice+`,`+(entry.settlePrice*qty)+`,`+entry.price+`,0,0,`+(entry.price*qty)+`,0,0,'',0,0,0,'',0,0,'',0,0,0,0,0,0,'',14036,'','','',1058,'',0,0,'',0,0,0,0,0,0,'',0,`+(entry.price*qty)+` from t_ICItembase where FItemID=`+entry.itemId
+                                        await this._db.excSql(strSql)
+                                        eid += 1
+                                        entry.syncedQty += qty
+                                    }
+                                }
+                            }
+                            if(entry.qty-entry.syncedQty>0.0001){
+                                 throw(`物料'`+entry.itemName+`',仓库'`+entry.stockName+`'库存不足`)
+                            }
+                        }
+                        strSql = `EXEC p_UpdateBillRelateData 21,`+id+`,'ICStockBill','ICStockBillEntry' `
+                        await this._db.excSql(strSql)
+                        strSql = `INSERT INTO ICStockBill(FInterID,FBillNo,FBrNo,FTranType,FCancellation,FStatus,FUpStockWhenSave,FROB,FHookStatus,Fdate,FSupplyID,FSaleStyle,FCheckDate,FConfirmDate,FFManagerID,FSManagerID,FBillerID,FConfirmer,FMultiCheckDate1,FMultiCheckDate2,FMultiCheckDate3,FMultiCheckDate4,FMultiCheckDate5,FPOOrdBillNo,FMultiCheckDate6,FRelateBrID,FOrgBillInterID,FMarketingStyle,FSelTranType,FPrintCount,FBrID,FFetchAdd,FConfirmMem,FExplanation,FDeptID,FEmpID,FManagerID,FVIPCardID,FReceiver,FVIPScore,FHolisticDiscountRate,FPOSName,FWorkShiftId,FLSSrcInterID,FPayCondition,FManageType,FSettleDate,FInvoiceStatus,FConsignee,FEnterpriseID,FSendStatus,FReceiveMan,FConsigneeAdd,FCod,FReceiverMobile,FHeadSelfB0163,FUUID) 
+            SELECT `+id+`,'`+bill.billNo+`','0',24,0,0,0,1,0,'`+bill.date+`',`+bill.custId+`,101,Null,Null,`+bill.empId+`,`+bill.empId+`,16394,0,Null,Null,Null,Null,Null,'',Null,0,0,12530,0,0,0,'','','`+bill.note+`',`+bill.deptId+`,`+bill.empId+`,`+bill.empId+`,0,'',0,0,'',0,0,0,0,'`+bill.date+`','',0,0,0,'','','','',`+bill.hxId+`,newid()`
                         await this._db.excSql(strSql)
                     }
                     // strSql = `delete SL_StenSyncStatus where FCareNo='`+bill.billNo+`'`
