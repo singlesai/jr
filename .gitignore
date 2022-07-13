@@ -2,3 +2,4 @@ node_modules
 *.rar
 *.zip
 log
+client

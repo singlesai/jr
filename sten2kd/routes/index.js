@@ -44,7 +44,7 @@ router.post('/stenobj', async function(req, res){
 router.get('/purin', async function(req,res){
   var rst = {success: false, info: ''}
   try{
-    var synced = await k3.getSyncStatus('PurIn', req.query.begdate)
+    var synced = await k3.getSyncStatus('manuIssue', req.query.begdate)
     var r = await sten.getPurIn(req.query.begdate, req.query.enddate)
     for(var idx in r){
       if(r[idx].inputNo in synced) {
@@ -67,12 +67,12 @@ router.get('/purin', async function(req,res){
 router.get('/purreturn', async function(req,res){
   var rst = {success: false, info: ''}
   try{
-    var synced = await k3.getSyncStatus('PurReturn', req.query.begdate)
+    var synced = await k3.getSyncStatus('manuIssue', req.query.begdate)
     var r = await sten.getPurReturn(req.query.begdate, req.query.enddate)
     for(var idx in r){
-      if(r[idx].inputNo in synced) {
-        r[idx].syncSuccess = synced[r[idx].inputNo].FSuccessed
-        r[idx].syncInfo = synced[r[idx].inputNo].FInfo
+      if(r[idx].outputNo in synced) {
+        r[idx].syncSuccess = synced[r[idx].outputNo].FSuccessed
+        r[idx].syncInfo = synced[r[idx].outputNo].FInfo
       }else{
         r[idx].syncSuccess = 0
         r[idx].syncInfo = ''
@@ -109,7 +109,7 @@ router.post('/stocktran', async function(req,res){
 router.post('/manuissue', async function(req, res){
   var rst = {success: false, info: ''}
   try{
-    var bill = req.body.bill
+    var bill = req.body
     var r = await k3.saveManuIssue(bill)
     rst.success = true
     rst.info = JSON.stringify(r)
@@ -117,7 +117,7 @@ router.post('/manuissue', async function(req, res){
     rst.success = false
     rst.info = ex.message || ex
   }
-  rst.end(JSON.stringify(rst))
+  res.end(JSON.stringify(rst))
 })
 
 module.exports = router;

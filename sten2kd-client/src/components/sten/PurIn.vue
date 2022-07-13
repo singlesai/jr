@@ -157,7 +157,7 @@ export default {
         var recs = this.multipleSelection
         for (var idx in recs) {
           var rec = recs[idx]
-          var rst = await this.k3.syncStockTran('PurIn', rec)
+          var rst = await this.k3.syncManuIssue(rec)
           if (!rst.success) {
             this.$message.error(rst.info)
           }

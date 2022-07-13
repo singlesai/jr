@@ -177,6 +177,36 @@ const K3 = class {
     })
     return rst.data
   }
+
+  async syncManuIssue (bill) {
+    var kdBill = {date: bill.inputTime, billNo: bill.inputNo, rob: 1, entry: []}
+    for (var idx in bill.entry) {
+      var rec = bill.entry[idx]
+      kdBill.entry.push({itemName: rec.partName, itemModel: rec.spec, stock: rec.positionName, qty: rec.quantity, price: rec.rawSalePrice, settlePrice: rec.rawSalePrice})
+    }
+    var rst = await axios({
+      method: 'POST',
+      url: this._domain + '/manuissue',
+      data: kdBill,
+      header: {'Content-Type': 'application/joon'}
+    })
+    return rst.data
+  }
+
+  async syncManuIssueReturn (bill) {
+    var kdBill = {date: bill.outputTime1, billNo: bill.outputNo, rob: -1, entry: []}
+    for (var idx in bill.entry) {
+      var rec = bill.entry[idx]
+      kdBill.entry.push({itemName: rec.partName, itemModel: rec.spec, stock: rec.positionName, qty: rec.quantity, price: rec.salePrice, settlePrice: rec.salePrice})
+    }
+    var rst = await axios({
+      method: 'POST',
+      url: this._domain + '/manuissue',
+      data: kdBill,
+      header: {'Content-Type': 'application/joon'}
+    })
+    return rst.data
+  }
 }
 
 export default K3
