@@ -14,7 +14,7 @@
             <el-progress v-if="loading.sync" :text-inside="true" :stroke-width="26" :percentage="loading.syncPercent">test</el-progress>
             <el-row>
                 <el-col :span="24">
-                    <el-table ref="multipleTable" v-loading="loading.work" :data="data" @selection-change="handleSelectionChange">
+                    <el-table ref="multipleTable" v-loading="loading.work" :data="data.filter(data=>(data.syncSuccess || 0) === (filter.synced?1:0))" @selection-change="handleSelectionChange">
                         <el-table-column prop="seled" type="selection" width="55"></el-table-column>
                         <el-table-column type="expand">
                           <template slot-scope="props">
@@ -23,7 +23,11 @@
                                 </el-table>
                           </template>
                         </el-table-column>
-                        <el-table-column v-for="(v, k) in fieldDic" :key="k" :prop="k" :label="v" width="120"></el-table-column>
+                        <el-table-column v-for="(v, k) in fieldDic" :key="k" :prop="k" :label="v" width="120">
+                          <template v-if="k==='syncSuccess'" slot="header">
+                            <el-checkbox v-model="filter.synced" size="mini">同步状态</el-checkbox>
+                          </template>
+                        </el-table-column>
                     </el-table>
                 </el-col>
             </el-row>

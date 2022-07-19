@@ -115,10 +115,10 @@ const K3 = class {
         keyProp = ['inputNo', 'partName', 'selfNo', 'purchaseNo']
         break
       case 'PurReturn':
-        keyProp = []
+        keyProp = 'outputId'
         break
       case 'PurReturnEntry':
-        keyProp = []
+        keyProp = ['outputNo', 'partName', 'selfNo']
         break
       case 'StockTaking':
         keyProp = 'inventoryId'
@@ -179,10 +179,11 @@ const K3 = class {
   }
 
   async syncManuIssue (bill) {
-    var kdBill = {date: bill.inputTime, billNo: bill.inputNo, rob: 1, entry: []}
+    var kdBill = {date: bill.inputTime, billNo: bill.inputNo, emp: '邱梓媚', rob: 1, entry: []}
     for (var idx in bill.entry) {
       var rec = bill.entry[idx]
-      kdBill.entry.push({itemName: rec.partName, itemModel: rec.spec, stock: rec.positionName, qty: rec.quantity, price: rec.rawSalePrice, settlePrice: rec.rawSalePrice})
+      kdBill.entry.push({itemName: rec.partName, itemModel: rec.spec, stock: rec.supplierName.substr(0, 5), qty: rec.quantity, price: rec.rawSalePrice, settlePrice: rec.rawSalePrice})
+      kdBill.dept = rec.positionName
     }
     var rst = await axios({
       method: 'POST',
@@ -194,10 +195,11 @@ const K3 = class {
   }
 
   async syncManuIssueReturn (bill) {
-    var kdBill = {date: bill.outputTime1, billNo: bill.outputNo, rob: -1, entry: []}
+    var kdBill = {date: bill.outputTime1, billNo: bill.outputNo, emp: '邱梓媚', rob: -1, entry: []}
     for (var idx in bill.entry) {
       var rec = bill.entry[idx]
       kdBill.entry.push({itemName: rec.partName, itemModel: rec.spec, stock: rec.positionName, qty: rec.quantity, price: rec.salePrice, settlePrice: rec.salePrice})
+      kdBill.dept = rec.positionName
     }
     var rst = await axios({
       method: 'POST',
